@@ -31,6 +31,10 @@
     const m = data.metrics;
     const beatsBaseline = m.accuracy1x2 > m.baselineHome;
 
+    const demoBanner = data.demo
+      ? `<div class="warn">🧪 <strong>Modo demostración.</strong> ${esc(data.message || "")}</div>`
+      : "";
+
     const metrics = `
       <div class="metrics">
         ${metricCard(pct(m.accuracy1x2), "Acierto 1X2", `Baseline (siempre local): ${pct(m.baselineHome)}`, beatsBaseline)}
@@ -59,6 +63,7 @@
       .join("");
 
     out.innerHTML = `
+      ${demoBanner}
       ${metrics}
       <p class="verdict">${verdict}</p>
       <div class="table-wrap">
