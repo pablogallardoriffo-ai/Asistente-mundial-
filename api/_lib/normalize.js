@@ -142,11 +142,16 @@ function round1(x) {
 }
 function posShort(pos = "") {
   const p = pos.toLowerCase();
-  if (p.startsWith("goal")) return "POR";
-  if (p.startsWith("def")) return "DEF";
-  if (p.startsWith("mid")) return "MED";
-  if (p.startsWith("att") || p.startsWith("for")) return "DEL";
-  return pos ? pos.slice(0, 3).toUpperCase() : "—";
+  if (!p) return "—";
+  if (p.includes("goal") || p.includes("keeper") || p.includes("porter")) return "POR";
+  // "back" antes que nada defensivo (centre-back, left/right back).
+  if (p.includes("back")) return "DEF";
+  // "midfield" antes que "defen" (defensive midfield = MED, no DEF).
+  if (p.includes("midfield") || p.includes("volante") || p.includes("mediocamp")) return "MED";
+  if (p.includes("wing") || p.includes("forward") || p.includes("strik") || p.includes("attack") || p.includes("delan")) return "DEL";
+  if (p.includes("defen") || p.includes("zaguero")) return "DEF";
+  if (p.includes("centre") || p.includes("central")) return "MED";
+  return pos.slice(0, 3).toUpperCase();
 }
 
 // ============================================================================
@@ -199,8 +204,11 @@ function teamFromEvents(events, teamId, leagueAvg) {
     gf += my; ga += opp; n += 1;
     results.push(my > opp ? "W" : my < opp ? "L" : "D");
   });
-  const avgFor = n ? gf / n : leagueAvg;
-  const avgAgainst = n ? ga / n : leagueAvg;
+  // Regularización: con pocos partidos acercamos los promedios a la media de
+  // la liga para no exagerar a partir de 1-2 datos (evita ratings ruidosos).
+  const pad = 2;
+  const avgFor = (gf + leagueAvg * pad) / (n + pad);
+  const avgAgainst = (ga + leagueAvg * pad) / (n + pad);
   return {
     lastResults: results.slice(0, 10),
     attack: clampN(avgFor / leagueAvg, 0.4, 2.2),
