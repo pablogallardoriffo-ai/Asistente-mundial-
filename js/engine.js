@@ -153,11 +153,13 @@
     return { attackMult, defenseMult, notes };
   }
 
-  // ---- predicción de un partido completo ------------------------------------
-  function predictMatch(fixture, DB) {
-    const home = DB.TEAMS[fixture.home];
-    const away = DB.TEAMS[fixture.away];
-    const base = DB.LEAGUE.avgGoalsPerTeam;
+  // ---- predicción a partir de dos equipos ya armados ------------------------
+  //  home / away : objetos de equipo (mismo formato para datos demo o reales)
+  //  meta        : { date, importance, time, stadium, ... } del partido
+  //  leagueAvg   : goles promedio por equipo en la liga (ancla del modelo)
+  function predictTeams(home, away, meta, leagueAvg) {
+    const fixture = meta || {};
+    const base = leagueAvg || 1.35;
 
     const ctxH = teamContext(home, fixture.date, fixture.importance, true);
     const ctxA = teamContext(away, fixture.date, fixture.importance, false);
@@ -224,6 +226,13 @@
     };
   }
 
+  // ---- predicción a partir del fixture demo (DB con TEAMS/LEAGUE) ------------
+  function predictMatch(fixture, DB) {
+    const home = DB.TEAMS[fixture.home];
+    const away = DB.TEAMS[fixture.away];
+    return predictTeams(home, away, fixture, DB.LEAGUE.avgGoalsPerTeam);
+  }
+
   // ---- generación de los ARGUMENTOS en lenguaje natural ---------------------
   function buildArguments(home, away, ctxH, ctxA, r) {
     const out = [];
@@ -254,5 +263,5 @@
   }
 
   // Exponer el motor.
-  window.ENGINE = { predictMatch, poisson };
+  window.ENGINE = { predictMatch, predictTeams, poisson };
 })();

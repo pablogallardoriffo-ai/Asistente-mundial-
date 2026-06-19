@@ -109,3 +109,82 @@ main { max-width: 1000px; margin: 0 auto; padding: 24px 18px 60px; }
 
 /* footer */
 .foot { margin-top: 30px; color: var(--muted); font-size: 12.5px; text-align: center; }
+
+/* ---- Badge de origen de datos ------------------------------------------- */
+.topright { display: flex; align-items: center; }
+.badge { font-size: 12px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+.badge-loading { color: var(--muted); background: var(--panel); }
+.badge-live { color: #bbf7d0; background: rgba(22,163,74,.15); border-color: rgba(22,163,74,.5); }
+.badge-demo { color: #fde68a; background: rgba(202,138,4,.15); border-color: rgba(202,138,4,.5); }
+
+/* ---- Tabs ---------------------------------------------------------------- */
+.tabs { max-width: 1000px; margin: 0 auto; padding: 14px 18px 0; display: flex; gap: 8px; }
+.tab { background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-bottom: none;
+  padding: 10px 16px; border-radius: 10px 10px 0 0; cursor: pointer; font-size: 14px; font-weight: 600; }
+.tab.active { color: var(--text); background: var(--panel-2); border-color: var(--line); }
+.view.hidden { display: none; }
+
+/* ---- Toolbar / filtros --------------------------------------------------- */
+.toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 8px 0 4px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 999px;
+  padding: 7px 13px; cursor: pointer; font-size: 13px; }
+.chip-on { color: #fff; background: var(--panel-2); border-color: #4f6bd6; }
+.chip small { opacity: .7; }
+.note { color: var(--muted); font-size: 13px; margin: 6px 0 14px; }
+
+/* botones */
+.btn { background: #2563eb; color: #fff; border: none; border-radius: 10px; padding: 10px 14px;
+  font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.btn:hover { background: #1d4ed8; }
+.btn:disabled { opacity: .7; cursor: progress; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line);
+  border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 13px; }
+.select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+
+/* ---- chips de liga / meta en tarjeta ------------------------------------ */
+.lchip { color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 999px; margin-right: 6px; }
+.quickmeta { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.metaline, .metricline { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+.deep-slot { margin-top: 14px; }
+.deepen { width: 100%; }
+.card.expanded { border-color: #355089; }
+.warn { margin-top: 12px; background: rgba(202,138,4,.12); border: 1px solid rgba(202,138,4,.4);
+  color: #fde68a; padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+.empty, .loading { background: var(--panel); border: 1px dashed var(--line); color: var(--muted);
+  padding: 18px; border-radius: 10px; text-align: center; }
+
+/* ---- Plantel ------------------------------------------------------------- */
+.squad { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.squad summary { cursor: pointer; color: #9ec1ff; font-weight: 600; font-size: 13.5px; }
+.squad .dt { color: var(--muted); font-weight: 400; margin-left: 8px; }
+.players { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 4px; }
+.players li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px;
+  padding: 5px 8px; background: var(--panel-2); border-radius: 7px; }
+.players li.inj { opacity: .7; }
+.players .pn { font-weight: 600; }
+.players .pp { color: var(--muted); font-size: 11px; border: 1px solid var(--line); padding: 1px 6px; border-radius: 999px; }
+.players .pf { color: var(--muted); font-size: 12px; }
+.players .pb { color: #f9a8d4; font-size: 12px; }
+.tag-inj { color: #fca5a5; font-size: 11px; border: 1px solid rgba(220,38,38,.5); padding: 1px 6px; border-radius: 999px; }
+
+/* ---- Simulador ----------------------------------------------------------- */
+.sim-intro h2 { margin: 6px 0 8px; font-size: 19px; }
+.sim-intro p { color: var(--muted); max-width: 760px; }
+.sim-controls { display: flex; gap: 10px; margin: 14px 0 18px; flex-wrap: wrap; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.metric { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.metric-good { border-color: rgba(22,163,74,.55); }
+.metric-val { font-size: 26px; font-weight: 800; }
+.metric-lbl { font-size: 13px; margin-top: 2px; }
+.metric-hint { color: var(--muted); font-size: 11.5px; margin-top: 4px; }
+.verdict { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; margin: 16px 0; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.bt-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+.bt-table th, .bt-table td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.bt-table th { background: var(--panel-2); color: var(--muted); font-weight: 600; position: sticky; top: 0; }
+.bt-table td.tl { text-align: left; }
+.bt-table .muted { color: var(--muted); }
+.row-hit { background: rgba(22,163,74,.07); }
+.row-miss { background: rgba(220,38,38,.06); }

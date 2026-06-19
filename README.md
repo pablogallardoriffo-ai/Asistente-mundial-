@@ -65,21 +65,63 @@ js/app.js         Dibuja las tarjetas y los argumentos
 
 ---
 
-## 🔌 Cómo conectar datos REALES (siguiente paso)
+## 🔌 Datos reales con API-Football (ya integrado)
 
-Hoy usa datos de ejemplo en `js/data.js`. Para usar datos reales solo hay que
-reemplazar esa capa por una API de fútbol, manteniendo la misma forma de datos:
+La app ya está conectada a [API-Football](https://www.api-football.com/) mediante
+**funciones serverless** en Vercel (carpeta `api/`). La clave vive en una variable
+de entorno y **nunca** llega al navegador.
 
-- [API-Football](https://www.api-football.com/) (planilla, lesiones, forma…)
-- [football-data.org](https://www.football-data.org/) (resultados, fixtures)
+### Paso 1 — Conseguir la clave (gratis)
+1. Crea una cuenta en https://dashboard.api-football.com/ (o vía RapidAPI).
+2. Copia tu **API key** (el plan gratis da 100 consultas/día).
 
-El **motor** (`engine.js`) y la **interfaz** (`app.js`) no cambian: solo cambia
-de dónde vienen los `TEAMS` y `FIXTURES`.
+### Paso 2 — Configurarla en Vercel
+En tu proyecto de Vercel → **Settings → Environment Variables**, agrega:
+
+| Variable | Valor | Obligatoria |
+|---|---|---|
+| `FOOTBALL_API_KEY` | tu clave de API-Football | ✅ Sí |
+| `APIFB_WC_SEASON` | temporada del Mundial (ej. `2026`) | opcional |
+| `APIFB_CHILE_SEASON` | temporada liga chilena (ej. `2025`) | opcional |
+| `APIFB_WC_LEAGUE` | id liga Mundial (por defecto `1`) | opcional |
+| `APIFB_CHILE_LEAGUE` | id liga Chile (por defecto `265`) | opcional |
+
+> ⚠️ **Plan gratis:** suele limitar las temporadas a **2021–2023**. Si tu plan no
+> incluye 2025/2026, pon `APIFB_CHILE_SEASON=2023` y `APIFB_WC_SEASON=2022` para
+> ver datos reales y probar el simulador. Con plan de pago puedes usar la actual.
+
+Luego **vuelve a desplegar** (o haz un push) y listo: el badge arriba pasará de
+🟡 *datos de ejemplo* a 🟢 *datos reales*.
+
+### Cómo se reparten las llamadas (para cuidar el plan gratis)
+- `GET /api/fixtures` → 1 llamada por liga (cacheada 6h). Lista partidos + pronóstico rápido.
+- `GET /api/match` → ~4 llamadas por equipo, **solo al pulsar "Analizar a fondo"** (cacheada 24h).
+- `GET /api/backtest` → 1 llamada por liga/temporada (cacheada 12h). Simulador.
+
+## 🧪 Simulador (backtest)
+
+Pestaña *Simulador*: corre el modelo sobre los partidos **ya jugados** de una
+temporada, prediciendo cada uno con **solo la información previa** (sin fuga de
+información), y compara con el resultado real. Muestra:
+- **Acierto 1X2** vs un baseline (siempre local).
+- **Marcador exacto**.
+- **Brier score** y **Log-loss** (miden si las probabilidades están bien calibradas).
+
+## 🗂️ Estructura del backend
+
+```
+api/
+  _lib/apiFootball.js   Cliente + caché + config de ligas (clave en secreto)
+  _lib/normalize.js     Traduce API-Football -> formato del motor
+  _lib/model.js         Poisson (servidor) para pronóstico rápido y backtest
+  fixtures.js           GET /api/fixtures  (listado + pronóstico rápido)
+  match.js              GET /api/match     (análisis a fondo de un partido)
+  backtest.js           GET /api/backtest  (simulador / comprobación)
+```
 
 ### Ideas para ampliar
 - Historial cara a cara (head-to-head) entre los dos equipos.
 - Clima y estado de la cancha.
-- Cuotas reales para detectar apuestas de "valor" automáticamente.
-- Formulario para cargar datos a mano cuando no haya API.
-- Guardar pronósticos y comparar contra el resultado real (medir aciertos).
+- Cuotas reales de casas de apuestas para detectar "valor" automáticamente.
+- Guardar pronósticos y comparar contra el resultado real con el tiempo.
 ```

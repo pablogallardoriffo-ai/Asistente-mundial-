@@ -12,23 +12,50 @@
       <span class="logo">⚽</span>
       <div>
         <h1>Asesor de Apuestas</h1>
-        <p class="tagline">Pronósticos de fútbol basados en datos y contexto real</p>
+        <p class="tagline">Pronósticos de fútbol con datos reales y contexto</p>
       </div>
     </div>
-    <div id="summary" class="summary">Cargando…</div>
+    <div class="topright">
+      <span id="source-badge" class="badge badge-loading">Cargando datos…</span>
+    </div>
   </header>
 
+  <nav class="tabs">
+    <button class="tab active" data-view="matches">📅 Partidos</button>
+    <button class="tab" data-view="simulator">🧪 Simulador (backtest)</button>
+  </nav>
+
   <main>
-    <section class="intro">
-      <p>
-        Este panel analiza cada partido cruzando muchas variables —momento de los
-        jugadores, lesiones, racha, localía, descanso, cumpleaños e importancia del
-        partido— y calcula con un modelo estadístico la probabilidad de cada
-        resultado, junto con los <strong>argumentos</strong> del porqué.
-      </p>
+    <!-- ===================== VISTA PARTIDOS ===================== -->
+    <section id="view-matches" class="view">
+      <div class="toolbar">
+        <div id="league-filters" class="filters"><!-- chips de liga --></div>
+        <button id="refresh" class="btn-ghost" title="Volver a cargar">↻ Actualizar</button>
+      </div>
+      <p id="matches-note" class="note"></p>
+      <section id="matches" class="matches"><!-- tarjetas --></section>
     </section>
 
-    <section id="matches" class="matches"><!-- las tarjetas se generan aquí --></section>
+    <!-- ===================== VISTA SIMULADOR ===================== -->
+    <section id="view-simulator" class="view hidden">
+      <div class="sim-intro">
+        <h2>🧪 Simulador / comprobación del algoritmo (backtest)</h2>
+        <p>
+          Corre el modelo sobre partidos <strong>ya jugados</strong> de la temporada,
+          prediciendo cada uno con <strong>solo la información previa</strong> a ese
+          partido (sin ver el futuro), y compara con el resultado real. Así medimos
+          de verdad cuánto acierta.
+        </p>
+        <div class="sim-controls">
+          <select id="sim-league" class="select">
+            <option value="chile">Primera División (Chile)</option>
+            <option value="worldcup">Mundial FIFA</option>
+          </select>
+          <button id="sim-run" class="btn">Correr simulación</button>
+        </div>
+      </div>
+      <div id="sim-results"><!-- métricas + tabla --></div>
+    </section>
 
     <footer class="foot">
       <p>
@@ -41,5 +68,6 @@
   <script src="js/data.js"></script>
   <script src="js/engine.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/backtest.js"></script>
 </body>
 </html>

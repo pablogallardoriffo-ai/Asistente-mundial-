@@ -1,0 +1,9 @@
+{
+  "name": "asesor-apuestas-futbol",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Asesor de apuestas de fútbol: pronósticos con modelo Poisson y datos reales de API-Football.",
+  "engines": {
+    "node": ">=18"
+  }
+}
