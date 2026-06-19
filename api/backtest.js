@@ -16,16 +16,24 @@ module.exports = async (req, res) => {
   const league = LEAGUES.find((l) => l.key === leagueKey) || LEAGUES[0];
   const season = (req.query && req.query.season) || league.season;
 
-  let id, raw;
+  let id, evs = [];
   try {
     id = await resolveLeagueId(league);
     if (!id) return res.status(200).json({ source: "api", league: league.name, season, metrics: null, sample: [], message: "No se encontró la liga en la fuente pública." });
-    raw = await tsdb(`/eventsseason.php?id=${id}&s=${encodeURIComponent(season)}`, 24 * 3600 * 1000);
+    const raw = await tsdb(`/eventsseason.php?id=${id}&s=${encodeURIComponent(season)}`, 24 * 3600 * 1000);
+    evs = eventsOf(raw);
+    // La fuente gratuita a veces recorta la temporada: complementamos con los
+    // últimos partidos de la liga para tener más muestra.
+    if (evs.length < 30) {
+      const past = await tsdb(`/eventspastleague.php?id=${id}`, 6 * 3600 * 1000).catch(() => ({}));
+      const seen = new Set(evs.map((e) => String(e.idEvent)));
+      eventsOf(past).forEach((e) => { if (!seen.has(String(e.idEvent))) evs.push(e); });
+    }
   } catch (e) {
     return res.status(200).json({ source: "error", message: String(e.message || e), league: league.name });
   }
 
-  const finished = eventsOf(raw)
+  const finished = evs
     .map((e) => tsdbEvent(e, league))
     .filter((f) => f.finished && f.goals.home != null && f.goals.away != null)
     .sort((a, b) => a.timestamp - b.timestamp);

@@ -19,26 +19,28 @@ const LEAGUE_AVG_GOALS = Number(process.env.TSDB_LEAGUE_AVG || 1.35);
 
 // Ligas que cargamos por defecto. El id se resuelve solo (descubrimiento), o
 // puedes fijarlo por variable de entorno si lo conoces.
+// IDs reales de TheSportsDB (verificados):
+//   Chile Primera División = 4627  ·  FIFA World Cup = 4429
 const LEAGUES = [
-  {
-    key: "chile",
-    name: "Primera División (Chile)",
-    short: "CHI",
-    color: "#dc2626",
-    envId: process.env.TSDB_CHILE_LEAGUE || "",
-    country: "Chile",
-    match: "Primera",
-    season: process.env.TSDB_CHILE_SEASON || "2024-2025",
-  },
   {
     key: "worldcup",
     name: "Mundial FIFA",
     short: "MUN",
     color: "#7c3aed",
-    envId: process.env.TSDB_WC_LEAGUE || "",
+    envId: process.env.TSDB_WC_LEAGUE || "4429",
     country: null,
-    match: "World Cup",
-    season: process.env.TSDB_WC_SEASON || "2022",
+    match: "FIFA World Cup",
+    season: process.env.TSDB_WC_SEASON || "2026",
+  },
+  {
+    key: "chile",
+    name: "Primera División (Chile)",
+    short: "CHI",
+    color: "#dc2626",
+    envId: process.env.TSDB_CHILE_LEAGUE || "4627",
+    country: "Chile",
+    match: "Chile Primera Division",
+    season: process.env.TSDB_CHILE_SEASON || "2025",
   },
 ];
 

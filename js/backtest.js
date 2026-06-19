@@ -77,9 +77,10 @@
   async function run() {
     const out = document.getElementById("sim-results");
     const league = document.getElementById("sim-league").value;
+    const season = (document.getElementById("sim-season").value || "").trim();
     out.innerHTML = `<div class="loading">Corriendo simulación sobre la temporada… (puede tardar unos segundos)</div>`;
     try {
-      const r = await fetch(`/api/backtest?league=${encodeURIComponent(league)}`);
+      const r = await fetch(`/api/backtest?league=${encodeURIComponent(league)}${season ? `&season=${encodeURIComponent(season)}` : ""}`);
       const data = await r.json();
       render(data);
     } catch (e) {
