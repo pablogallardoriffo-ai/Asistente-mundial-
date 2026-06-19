@@ -1,59 +1,57 @@
 // ============================================================================
 //  GET /api/match?home=<teamId>&away=<teamId>&league=<key>
-//  "Analizar a fondo": dispara la búsqueda de toda la data de ambos equipos
-//  (estadísticas, plantel con jugadores, entrenador, lesiones y racha) y la
-//  devuelve en el formato del motor. El navegador corre la predicción rica.
-//
-//  Cacheado 24h por equipo. Cada equipo cuesta ~4 llamadas a la API.
+//  "Analizar a fondo" con la fuente pública (TheSportsDB):
+//  busca la racha y la fuerza de cada equipo (últimos partidos) y, si la
+//  fuente lo permite, el plantel con cumpleaños. El navegador corre el motor.
 // ============================================================================
 
-const { apiGet, hasKey, LEAGUES, LEAGUE_AVG_GOALS } = require("./_lib/apiFootball");
-const { normalizeTeamDeep } = require("./_lib/normalize");
+const { tsdb, LEAGUES, LEAGUE_AVG_GOALS } = require("./_lib/sportsdb");
+const { teamFromEvents, tsdbPlayers, short } = require("./_lib/normalize");
 
-// Llama a la API y, si falla, devuelve un valor por defecto (no rompe todo).
 async function safe(path, fallback, ttl) {
-  try {
-    return await apiGet(path, ttl);
-  } catch (e) {
-    return fallback;
-  }
+  try { return await tsdb(path, ttl); } catch (e) { return fallback; }
 }
 
 async function buildTeam(teamId, league, color) {
-  const day = 24 * 60 * 60 * 1000;
-  const [statsArr, players, injuries, coach] = await Promise.all([
-    safe(`/teams/statistics?team=${teamId}&league=${league.id}&season=${league.season}`, null, day),
-    safe(`/players?team=${teamId}&season=${league.season}&page=1`, [], day),
-    safe(`/injuries?team=${teamId}&season=${league.season}`, [], 6 * 3600 * 1000),
-    safe(`/coachs?team=${teamId}`, [], 7 * day),
+  const day = 24 * 3600 * 1000;
+  const [lastRaw, playersRaw, teamRaw] = await Promise.all([
+    safe(`/eventslast.php?id=${teamId}`, {}, 3 * 3600 * 1000),
+    safe(`/lookup_all_players.php?id=${teamId}`, {}, day),
+    safe(`/lookupteam.php?id=${teamId}`, {}, 7 * day),
   ]);
 
-  // /teams/statistics devuelve un objeto; el resto, arrays.
-  const stats = statsArr && !Array.isArray(statsArr) ? statsArr : (Array.isArray(statsArr) ? statsArr[0] : null);
-  const teamMeta = (stats && stats.team) || { id: teamId, name: "Equipo" };
+  const events = (lastRaw && lastRaw.results) || [];
+  const form = teamFromEvents(events, teamId, LEAGUE_AVG_GOALS);
+  const players = tsdbPlayers(playersRaw && playersRaw.player);
 
-  return normalizeTeamDeep({
-    teamMeta,
-    stats,
-    players,
-    injuries,
-    coach,
+  const teamInfo = (teamRaw && teamRaw.teams && teamRaw.teams[0]) || {};
+  const name = teamInfo.strTeam || (events[0] && (String(events[0].idHomeTeam) === String(teamId) ? events[0].strHomeTeam : events[0].strAwayTeam)) || "Equipo";
+  // TheSportsDB a veces trae el técnico en strManager (puede venir vacío).
+  const coachName = teamInfo.strManager || null;
+
+  return {
+    id: String(teamId),
+    name,
+    short: short(name),
     color,
-    leagueAvg: LEAGUE_AVG_GOALS,
-  });
+    attack: form.attack,
+    defense: form.defense,
+    coach: { name: coachName || "Cuerpo técnico", birthday: null },
+    lastResults: form.lastResults,
+    restDays: 4,
+    players,
+    _played: form.played,
+    _hasPlayers: players.length > 0,
+  };
 }
 
 module.exports = async (req, res) => {
-  res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=172800");
+  res.setHeader("Cache-Control", "s-maxage=43200, stale-while-revalidate=86400");
 
   const { home, away, league: leagueKey } = req.query || {};
   if (!home || !away) {
     return res.status(400).json({ error: "Faltan parámetros home/away (IDs de equipo)." });
   }
-  if (!hasKey()) {
-    return res.status(200).json({ source: "demo", reason: "NO_KEY" });
-  }
-
   const league = LEAGUES.find((l) => l.key === leagueKey) || LEAGUES[0];
 
   try {
@@ -63,8 +61,15 @@ module.exports = async (req, res) => {
     ]);
     return res.status(200).json({
       source: "api",
+      provider: "TheSportsDB (datos públicos)",
       leagueName: league.name,
       leagueAvg: LEAGUE_AVG_GOALS,
+      // Avisos de cobertura de la fuente gratis (honestidad sobre los datos).
+      coverage: {
+        players: homeTeam._hasPlayers && awayTeam._hasPlayers,
+        injuries: false,
+        coachBirthday: false,
+      },
       home: homeTeam,
       away: awayTeam,
     });

@@ -20,7 +20,7 @@
     const out = document.getElementById("sim-results");
 
     if (data.source !== "api") {
-      out.innerHTML = `<div class="warn">El simulador necesita datos reales. Configura <code>FOOTBALL_API_KEY</code> en Vercel para activarlo.</div>`;
+      out.innerHTML = `<div class="warn">No se pudo leer la fuente pública en este momento. ${esc(data.message || "")} Intenta de nuevo en unos segundos.</div>`;
       return;
     }
     if (!data.metrics) {

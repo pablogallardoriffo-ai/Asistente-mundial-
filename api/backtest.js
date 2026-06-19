@@ -1,14 +1,12 @@
 // ============================================================================
-//  GET /api/backtest?league=<key>&season=<año?>
-//  SIMULADOR para comprobar la veracidad del algoritmo:
-//  recorre los partidos YA JUGADOS de la temporada en orden cronológico y,
-//  para cada uno, predice usando SOLO la información previa a ese partido
-//  (sin "ver el futuro"). Luego compara con el resultado real y entrega
-//  métricas de acierto. Una sola llamada a la API (cacheada).
+//  GET /api/backtest?league=<key>&season=<temporada?>
+//  SIMULADOR con la fuente pública (TheSportsDB): recorre los partidos ya
+//  jugados de una temporada y predice cada uno con SOLO datos previos (sin
+//  ver el futuro), comparando con el resultado real. Métricas de acierto.
 // ============================================================================
 
-const { apiGet, hasKey, LEAGUES, LEAGUE_AVG_GOALS } = require("./_lib/apiFootball");
-const { normalizeFixture } = require("./_lib/normalize");
+const { tsdb, resolveLeagueId, eventsOf, LEAGUES, LEAGUE_AVG_GOALS } = require("./_lib/sportsdb");
+const { tsdbEvent } = require("./_lib/normalize");
 const { predictStrength } = require("./_lib/model");
 
 module.exports = async (req, res) => {
@@ -16,45 +14,36 @@ module.exports = async (req, res) => {
 
   const leagueKey = (req.query && req.query.league) || "chile";
   const league = LEAGUES.find((l) => l.key === leagueKey) || LEAGUES[0];
-  const season = Number((req.query && req.query.season) || league.season);
+  const season = (req.query && req.query.season) || league.season;
 
-  if (!hasKey()) {
-    return res.status(200).json({ source: "demo", reason: "NO_KEY", league: league.name });
-  }
-
-  let raw;
+  let id, raw;
   try {
-    raw = await apiGet(`/fixtures?league=${league.id}&season=${season}`);
+    id = await resolveLeagueId(league);
+    if (!id) return res.status(200).json({ source: "api", league: league.name, season, metrics: null, sample: [], message: "No se encontró la liga en la fuente pública." });
+    raw = await tsdb(`/eventsseason.php?id=${id}&s=${encodeURIComponent(season)}`, 24 * 3600 * 1000);
   } catch (e) {
     return res.status(200).json({ source: "error", message: String(e.message || e), league: league.name });
   }
 
-  const finished = raw
-    .map((r) => normalizeFixture(r, league))
+  const finished = eventsOf(raw)
+    .map((e) => tsdbEvent(e, league))
     .filter((f) => f.finished && f.goals.home != null && f.goals.away != null)
     .sort((a, b) => a.timestamp - b.timestamp);
 
   if (finished.length < 10) {
     return res.status(200).json({
-      source: "api",
-      league: league.name,
-      season,
-      message: "No hay suficientes partidos jugados en esta temporada para el simulador.",
-      metrics: null,
-      sample: [],
-      played: finished.length,
+      source: "api", provider: "TheSportsDB (datos públicos)", league: league.name, season,
+      metrics: null, sample: [], played: finished.length,
+      message: `Pocos partidos jugados para esta temporada (${finished.length}). Prueba otra temporada (ej. 2023-2024).`,
     });
   }
 
-  // Ancla de goles de la liga (constante de escala).
   let tg = 0;
   finished.forEach((f) => (tg += f.goals.home + f.goals.away));
   const leagueAvg = tg / (2 * finished.length) || LEAGUE_AVG_GOALS;
 
-  // Estado rolling: solo partidos PREVIOS de cada equipo.
-  const agg = {}; // teamId -> { gf, ga, n }
-  const MIN = 3; // mínimo de partidos previos para predecir
-
+  const agg = {};
+  const MIN = 3;
   let n = 0, hit1x2 = 0, hitExact = 0, brier = 0, logloss = 0, baseHome = 0;
   const rows = [];
 
@@ -72,26 +61,20 @@ module.exports = async (req, res) => {
       if (pred.topScore === `${f.goals.home}-${f.goals.away}`) hitExact += 1;
       if (actual === "1") baseHome += 1;
 
-      // Brier multiclase y log-loss (miden CALIBRACIÓN, no solo aciertos).
       const P = pred.probs;
       const y = { home: actual === "1" ? 1 : 0, draw: actual === "X" ? 1 : 0, away: actual === "2" ? 1 : 0 };
       brier += sq(P.home - y.home) + sq(P.draw - y.draw) + sq(P.away - y.away);
-      const pActual = actual === "1" ? P.home : actual === "X" ? P.draw : P.away;
-      logloss += -Math.log(Math.max(1e-6, pActual));
+      const pA = actual === "1" ? P.home : actual === "X" ? P.draw : P.away;
+      logloss += -Math.log(Math.max(1e-6, pA));
 
       rows.push({
-        date: f.date,
-        home: f.home.name, away: f.away.name,
+        date: f.date, home: f.home.name, away: f.away.name,
         probs: { home: round(P.home), draw: round(P.draw), away: round(P.away) },
-        pick: pred.pick,
-        predScore: pred.topScore,
-        actual,
-        score: `${f.goals.home}-${f.goals.away}`,
-        hit: pred.pick === actual,
+        pick: pred.pick, predScore: pred.topScore,
+        actual, score: `${f.goals.home}-${f.goals.away}`, hit: pred.pick === actual,
       });
     }
 
-    // Actualizar DESPUÉS de predecir (evita fuga de información).
     bump(agg, f.home.id, f.goals.home, f.goals.away);
     bump(agg, f.away.id, f.goals.away, f.goals.home);
   }
@@ -100,20 +83,20 @@ module.exports = async (req, res) => {
     ? {
         evaluated: n,
         accuracy1x2: round(hit1x2 / n),
-        baselineHome: round(baseHome / n), // acierto si SIEMPRE eliges local
+        baselineHome: round(baseHome / n),
         exactScore: round(hitExact / n),
-        brier: round(brier / n),         // 0 = perfecto; ~0.66 = azar puro (3 vías)
-        logloss: round(logloss / n),     // menor = mejor; ~1.10 = azar puro
+        brier: round(brier / n),
+        logloss: round(logloss / n),
       }
     : null;
 
   return res.status(200).json({
     source: "api",
+    provider: "TheSportsDB (datos públicos)",
     league: league.name,
     season,
     played: finished.length,
     metrics,
-    // Mostramos los últimos 30 para no saturar la página.
     sample: rows.slice(-30).reverse(),
   });
 };
@@ -121,9 +104,7 @@ module.exports = async (req, res) => {
 function bump(agg, id, gf, ga) {
   if (id == null) return;
   if (!agg[id]) agg[id] = { gf: 0, ga: 0, n: 0 };
-  agg[id].gf += gf;
-  agg[id].ga += ga;
-  agg[id].n += 1;
+  agg[id].gf += gf; agg[id].ga += ga; agg[id].n += 1;
 }
 function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
 function sq(x) { return x * x; }

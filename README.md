@@ -65,11 +65,33 @@ js/app.js         Dibuja las tarjetas y los argumentos
 
 ---
 
-## 🔌 Datos reales con API-Football (ya integrado)
+## 🔌 Datos reales SIN registro (TheSportsDB) — opción por defecto
 
-La app ya está conectada a [API-Football](https://www.api-football.com/) mediante
-**funciones serverless** en Vercel (carpeta `api/`). La clave vive en una variable
-de entorno y **nunca** llega al navegador.
+La app va a buscar los datos ella misma a una base de datos pública y abierta,
+[**TheSportsDB**](https://www.thesportsdb.com/), usando su **clave de prueba
+pública** (no necesitas registrarte ni configurar nada). Las llamadas se hacen
+desde **funciones serverless** en Vercel (carpeta `api/`).
+
+**Cobertura de la fuente gratuita (honestidad):**
+- ✅ Partidos, resultados y **racha** de cada equipo → disponibles.
+- ⚠️ **Plantel de jugadores** (con cumpleaños) → según disponibilidad de la liga.
+- ❌ **Lesiones** y **cumpleaños del entrenador** → normalmente no incluidos.
+
+Variables opcionales (solo si quieres afinar) en Vercel → Environment Variables:
+
+| Variable | Para qué |
+|---|---|
+| `TSDB_CHILE_SEASON` | temporada liga chilena (ej. `2024-2025`) |
+| `TSDB_WC_SEASON` | temporada del Mundial (ej. `2022`) |
+| `TSDB_CHILE_LEAGUE` / `TSDB_WC_LEAGUE` | fijar el id de liga si el automático falla |
+| `TSDB_KEY` | usar tu propia clave de TheSportsDB (Patreon) para más datos |
+
+### (Alternativa) Datos premium con API-Football
+
+Si más adelante quieres datos más completos (lesiones, rating por jugador,
+cumpleaños del DT), el proyecto incluye también un cliente para
+[API-Football](https://www.api-football.com/) en `api/_lib/apiFootball.js`.
+Requiere registrarse y poner `FOOTBALL_API_KEY`. No es necesario para usar la app.
 
 ### Paso 1 — Conseguir la clave (gratis)
 1. Crea una cuenta en https://dashboard.api-football.com/ (o vía RapidAPI).

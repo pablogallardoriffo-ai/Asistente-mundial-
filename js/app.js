@@ -7,7 +7,7 @@
 
 (function () {
   const ENGINE = window.ENGINE;
-  const state = { source: "demo", fixtures: [], leagues: [], filter: "all" };
+  const state = { source: "demo", provider: "", fixtures: [], leagues: [], filter: "all" };
 
   const pct = (x) => `${Math.round(x * 100)}%`;
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -32,10 +32,10 @@
     const b = document.getElementById("source-badge");
     if (state.source === "api") {
       b.className = "badge badge-live";
-      b.textContent = "🟢 Datos reales (API-Football)";
+      b.textContent = `🟢 Datos reales · ${state.provider || "fuente pública"}`;
     } else {
       b.className = "badge badge-demo";
-      b.textContent = "🟡 Datos de ejemplo (configura la clave para datos reales)";
+      b.textContent = "🟡 Sin conexión a la fuente pública ahora · mostrando ejemplo";
     }
   }
 
@@ -191,6 +191,15 @@
       block.className = "full";
       block.innerHTML = fullCardHTML(pred, metaLine);
       card.appendChild(block);
+      // Aviso honesto sobre qué datos trajo la fuente pública.
+      if (data.coverage && !data.coverage.players) {
+        const cov = document.createElement("div");
+        cov.className = "warn";
+        cov.textContent =
+          "Nota: la fuente pública gratuita no entregó el plantel de jugadores para este partido. " +
+          "El pronóstico usa la fuerza y la racha reales de cada equipo (sí disponibles).";
+        card.appendChild(cov);
+      }
     } catch (e) {
       btn.disabled = false;
       btn.textContent = "🔁 Reintentar análisis a fondo";
@@ -219,7 +228,7 @@
     } else {
       // ----- Fallback DEMO -----
       const DB = window.DB;
-      note.textContent = "Mostrando partidos de EJEMPLO. Configura la clave de API en Vercel para ver Mundial y liga chilena reales.";
+      note.textContent = "No se pudo cargar la fuente pública en este momento (puede estar saturada o sin partidos próximos). Mostrando partidos de EJEMPLO; pulsa ↻ Actualizar para reintentar.";
       root.innerHTML = DB.FIXTURES.map((f) => {
         const pred = ENGINE.predictMatch(f, DB);
         const card = document.createElement("div");
@@ -236,6 +245,7 @@
       const r = await fetch("/api/fixtures");
       const data = await r.json();
       state.source = data.source === "api" && data.fixtures.length ? "api" : "demo";
+      state.provider = data.provider || "";
       state.fixtures = data.fixtures || [];
       state.leagues = data.leagues || [];
       if (data.source !== "api" && data.message) console.info("Fixtures:", data.message);
