@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asesor de Apuestas · Fútbol</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">⚽</span>
+      <div>
+        <h1>Asesor de Apuestas</h1>
+        <p class="tagline">Pronósticos de fútbol basados en datos y contexto real</p>
+      </div>
+    </div>
+    <div id="summary" class="summary">Cargando…</div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p>
+        Este panel analiza cada partido cruzando muchas variables —momento de los
+        jugadores, lesiones, racha, localía, descanso, cumpleaños e importancia del
+        partido— y calcula con un modelo estadístico la probabilidad de cada
+        resultado, junto con los <strong>argumentos</strong> del porqué.
+      </p>
+    </section>
+
+    <section id="matches" class="matches"><!-- las tarjetas se generan aquí --></section>
+
+    <footer class="foot">
+      <p>
+        ⚠️ Herramienta informativa y educativa. Predecir el futuro es imposible;
+        esto entrega un <strong>acercamiento probabilístico</strong>. Apuesta con responsabilidad.
+      </p>
+    </footer>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

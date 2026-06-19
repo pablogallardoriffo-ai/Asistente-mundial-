@@ -1,0 +1,111 @@
+/* ===========================================================================
+   Estilos · Asesor de Apuestas de Fútbol
+   =========================================================================== */
+:root {
+  --bg: #0b1220;
+  --panel: #131c30;
+  --panel-2: #1a2540;
+  --text: #e8eefc;
+  --muted: #93a1c0;
+  --line: #25304d;
+  --home: #2563eb;
+  --draw: #64748b;
+  --away: #f59e0b;
+  --green: #16a34a;
+  --yellow: #ca8a04;
+  --red: #dc2626;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(1200px 600px at 80% -10%, #1b2c52 0%, var(--bg) 55%);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+/* ---- Topbar -------------------------------------------------------------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(10, 16, 30, 0.6);
+  backdrop-filter: blur(6px);
+  position: sticky; top: 0; z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.logo { font-size: 34px; }
+.topbar h1 { margin: 0; font-size: 20px; letter-spacing: .3px; }
+.tagline { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.summary {
+  font-size: 13px; color: var(--muted);
+  background: var(--panel); padding: 8px 12px; border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+/* ---- Layout -------------------------------------------------------------- */
+main { max-width: 1000px; margin: 0 auto; padding: 24px 18px 60px; }
+.intro p { color: var(--muted); max-width: 760px; }
+.matches { display: grid; gap: 18px; margin-top: 10px; }
+
+/* ---- Tarjeta de partido -------------------------------------------------- */
+.card {
+  background: linear-gradient(180deg, var(--panel) 0%, #101829 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.card-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.teams { display: flex; align-items: center; gap: 10px; font-size: 16px; }
+.teams .vs { color: var(--muted); font-weight: 400; font-size: 13px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.meta { color: var(--muted); font-size: 12.5px; }
+
+.pred-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-top: 16px; }
+@media (max-width: 720px) { .pred-row { grid-template-columns: 1fr; } }
+
+/* recomendación */
+.recommend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px; margin-bottom: 12px;
+  border: 1px solid var(--line); background: var(--panel-2);
+}
+.recommend .confidence { font-size: 12px; color: var(--muted); margin-left: auto; }
+.conf-high { border-left: 4px solid var(--green); }
+.conf-mid  { border-left: 4px solid var(--yellow); }
+.conf-low  { border-left: 4px solid var(--red); }
+
+/* barra 1x2 */
+.bar { display: flex; height: 30px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+.seg { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #0b1220; }
+.seg-home { background: var(--home); color: #fff; }
+.seg-draw { background: var(--draw); color: #fff; }
+.seg-away { background: var(--away); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+
+/* lado derecho */
+.pred-side { display: grid; gap: 14px; align-content: start; }
+.side-block h4 { margin: 0 0 8px; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.scores { display: flex; flex-wrap: wrap; gap: 8px; }
+.score-chip {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; font-weight: 700; font-size: 15px; display: flex; flex-direction: column; align-items: center;
+}
+.score-chip small { font-weight: 500; color: var(--muted); font-size: 11px; }
+.score-top { border-color: var(--green); box-shadow: 0 0 0 1px var(--green) inset; }
+.ou { display: flex; gap: 16px; font-size: 14px; }
+
+/* argumentos */
+.args { margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.args summary { cursor: pointer; color: #9ec1ff; font-weight: 600; }
+.args ul { margin: 12px 0; padding-left: 18px; }
+.args li { margin: 6px 0; color: var(--text); font-size: 14px; }
+.disclaimer { color: var(--muted); font-size: 12.5px; background: var(--panel-2); padding: 10px; border-radius: 8px; }
+
+/* footer */
+.foot { margin-top: 30px; color: var(--muted); font-size: 12.5px; text-align: center; }
